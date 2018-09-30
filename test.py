@@ -28,8 +28,8 @@ def pitchShift(a, offset):
 def callback(in_data, frame_count, time_info, status):
     sample = []
     print(noteoffset)
-    #for t in range(0,2000,1): sample.append(  ((t/2) * (t/3)) % 255  )
-    for t in range(0,2000,1): sample.append(  (t % 255  ))
+    for t in range(0,2000,1): sample.append(  ((t/2) * (t/3)) % 255  )
+    #for t in range(0,2000,1): sample.append(  (t % 255  ))
 
     raw = ''.join(map(chr, pitchShift(sample, noteoffset)))
 
