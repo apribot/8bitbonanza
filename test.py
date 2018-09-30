@@ -27,27 +27,31 @@ def pitchShift(a, offset):
 
 def callback(in_data, frame_count, time_info, status):
     sample = []
-    print(noteoffset)
-    for t in range(0,2000,1): sample.append(  ((t/2) * (t/3)) % 255  )
-    #for t in range(0,2000,1): sample.append(  (t % 255  ))
 
+    #need to generate a longer sample and feed frames from it sequentially
+    #otherwise we are stuck with tones over evolving sounds
+
+    #for t in range(0,4410,1): sample.append(  ((t/2) * (t/3)) % 255  )
+    #for t in range(0,4410,1): sample.append(  (t % 255  ))
+    #for t in range(0,4410,1): sample.append( ((t%118|t%177) % 255  ))
+    for t in range(0,4410,1): sample.append( (t*(t<<3|t>>1)) % 255  )
+    #for t in range(0,4410,1): sample.append( (t%118|t%177) % 255  )
+    #for t in range(0,4410,1): sample.append( ((((t%16)<<6)/8|t%255|t)-12) % 255  )
     raw = ''.join(map(chr, pitchShift(sample, noteoffset)))
 
     # dirty padding
-    if(len(raw) < 2000):
-    	raw = raw * int(2000.0 / len(raw))
+    if(len(raw) < 4410):
+        raw = raw * int(4410.0 / len(raw))
 
     data = raw
     return (data, pyaudio.paContinue)
 
-def playNote(offset):
-	global noteoffset
-	noteoffset = offset
-	stream.start_stream()
-	time.sleep(0.5)
-	stream.stop_stream()
-
-n=0
+def playNote(offset, sleep = 0.5):
+    global noteoffset
+    noteoffset = offset
+    stream.start_stream()
+    time.sleep(sleep)
+    stream.stop_stream()
 
 stream=pyaudio.PyAudio().open(
     format=pyaudio.paInt8,
@@ -56,11 +60,38 @@ stream=pyaudio.PyAudio().open(
     output=True,
     stream_callback=callback)
 
-playNote(0)
-playNote(4)
-playNote(7)
-
-
+playNote(0+12, 0.12)
+playNote(4+12, 0.12)
+playNote(7+12, 0.12)
+playNote(11+12, 0.12)
+playNote(12+12, 0.12)
+playNote(11+12, 0.12)
+playNote(7+12, 0.12)
+playNote(4+12, 0.12)
+playNote(0+12, 0.12)
+playNote(4+12, 0.12)
+playNote(7+12, 0.12)
+playNote(11+12, 0.12)
+playNote(12+12, 0.12)
+playNote(11+12, 0.12)
+playNote(7+12, 0.12)
+playNote(4+12, 0.12)
+playNote(-1+12, 0.12)
+playNote(4+12, 0.12)
+playNote(7+12, 0.12)
+playNote(11+12, 0.12)
+playNote(12+12, 0.12)
+playNote(11+12, 0.12)
+playNote(7+12, 0.12)
+playNote(4+12, 0.12)
+playNote(-1+12, 0.12)
+playNote(4+12, 0.12)
+playNote(7+12, 0.12)
+playNote(11+12, 0.12)
+playNote(12+12, 0.12)
+playNote(11+12, 0.12)
+playNote(7+12, 0.12)
+playNote(4+12, 0.12)
 
 stream.close()
 pyaudio.PyAudio().terminate()
