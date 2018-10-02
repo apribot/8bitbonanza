@@ -1,8 +1,12 @@
 import pyaudio
 import numpy as np
 import time
+import math
 
 noteoffset = 0
+frameptr = 0
+waveforms = {}
+rawsize = 44100
 
 def linearInterpolate( x, a, n ):
     if( x <= 0 ):      
@@ -15,7 +19,7 @@ def linearInterpolate( x, a, n ):
 def linearInterpolateArray( a, n, m ):
     step = float( n - 1 ) / (m - 1)
     b = []
-    for j in xrange(0,m):
+    for j in range(0,m):
         b.append(int(linearInterpolate( j*step, a, n )))
     return b
 
@@ -25,26 +29,61 @@ def pitchShift(a, offset):
     m = int((1.0 / factor) * n)
     return linearInterpolateArray(a, n, m)
 
-def callback(in_data, frame_count, time_info, status):
-    sample = []
-
-    #need to generate a longer sample and feed frames from it sequentially
-    #otherwise we are stuck with tones over evolving sounds
-
+def setWaveform():
+    global waveforms
+    global rawsize
+    waveforms = {}
     #for t in range(0,4410,1): sample.append(  ((t/2) * (t/3)) % 255  )
     #for t in range(0,4410,1): sample.append(  (t % 255  ))
     #for t in range(0,4410,1): sample.append( ((t%118|t%177) % 255  ))
-    for t in range(0,4410,1): sample.append( (t*(t<<3|t>>1)) % 255  )
+    #for t in range(0,4410,1): sample.append( (t*(t<<3|t>>1)) % 255  )
     #for t in range(0,4410,1): sample.append( (t%118|t%177) % 255  )
     #for t in range(0,4410,1): sample.append( ((((t%16)<<6)/8|t%255|t)-12) % 255  )
-    raw = ''.join(map(chr, pitchShift(sample, noteoffset)))
 
-    # dirty padding
-    if(len(raw) < 4410):
-        raw = raw * int(4410.0 / len(raw))
+    #for t in range(0,rawsize,1): waveform.append(  ((t/2) * (t/3)) % 255  )
 
-    data = raw
+    #just going to pre-provision the sounds because the pyaudio dox suck ass
+    #and i have no idea what i'm doing
+    for noteoffset in range(-4*12,(4*12)+1, 1):
+        waveform = []
+
+        for t in range(0,rawsize,1): 
+            waveform.append(  int( (math.sin(t)+1) * 254)  % 255  )
+
+        raw = pitchShift(waveform, noteoffset)
+        factor = 255.0 / max(raw)
+        raw = [ int(x*factor) for x in raw] 
+
+        waveforms[noteoffset] = ''.join(map(chr, raw))
+
+        while (len(waveforms[noteoffset]) < rawsize):
+            waveforms[noteoffset] = waveforms[noteoffset] * 2 
+
+		# normalize
+       
+
+
+
+def audioFactory(frame_size): 
+    global noteoffset
+    global waveforms
+    global frameptr
+    global rawsize
+
+    ret = waveforms[noteoffset][frameptr * frame_size : (frameptr * frame_size)+frame_size]
+
+    frameptr = frameptr + 1
+    frameptr = frameptr % int(rawsize/frame_size)
+
+    return ret
+
+
+
+def callback(in_data, frame_count, time_info, status):
+    data = audioFactory(frame_count)
+
     return (data, pyaudio.paContinue)
+
 
 def playNote(offset, sleep = 0.5):
     global noteoffset
@@ -53,45 +92,28 @@ def playNote(offset, sleep = 0.5):
     time.sleep(sleep)
     stream.stop_stream()
 
+
+
+
+setWaveform()
+
 stream=pyaudio.PyAudio().open(
     format=pyaudio.paInt8,
     channels=1,
     rate=44100,
     output=True,
-    stream_callback=callback)
+    stream_callback=callback
+    )
 
-playNote(0+12, 0.12)
-playNote(4+12, 0.12)
-playNote(7+12, 0.12)
-playNote(11+12, 0.12)
-playNote(12+12, 0.12)
-playNote(11+12, 0.12)
-playNote(7+12, 0.12)
-playNote(4+12, 0.12)
-playNote(0+12, 0.12)
-playNote(4+12, 0.12)
-playNote(7+12, 0.12)
-playNote(11+12, 0.12)
-playNote(12+12, 0.12)
-playNote(11+12, 0.12)
-playNote(7+12, 0.12)
-playNote(4+12, 0.12)
-playNote(-1+12, 0.12)
-playNote(4+12, 0.12)
-playNote(7+12, 0.12)
-playNote(11+12, 0.12)
-playNote(12+12, 0.12)
-playNote(11+12, 0.12)
-playNote(7+12, 0.12)
-playNote(4+12, 0.12)
-playNote(-1+12, 0.12)
-playNote(4+12, 0.12)
-playNote(7+12, 0.12)
-playNote(11+12, 0.12)
-playNote(12+12, 0.12)
-playNote(11+12, 0.12)
-playNote(7+12, 0.12)
-playNote(4+12, 0.12)
+
+
+print('0')
+playNote(0, 0.5)
+playNote(2, 0.5)
+playNote(4, 0.5)
+
+
+
 
 stream.close()
 pyaudio.PyAudio().terminate()
