@@ -2,6 +2,7 @@ import pyaudio
 import numpy as np
 import time
 import math
+import pygame
 
 noteoffset = 0
 frameptr = 0
@@ -48,11 +49,11 @@ def setWaveform():
         waveform = []
 
         for t in range(0,rawsize,1): 
-            waveform.append(  int( (math.sin(t)+1) * 254)  % 255  )
+            waveform.append(  int( ( ((t*8|t>>3)+139)<<4)  % 255 ) )
 
         raw = pitchShift(waveform, noteoffset)
-        factor = 255.0 / max(raw)
-        raw = [ int(x*factor) for x in raw] 
+        #factor = 255.0 / max(raw)
+        #raw = [ int(x*factor) for x in raw] 
 
         waveforms[noteoffset] = ''.join(map(chr, raw))
 
@@ -107,13 +108,32 @@ stream=pyaudio.PyAudio().open(
 
 
 
-print('0')
-playNote(0, 0.5)
-playNote(2, 0.5)
-playNote(4, 0.5)
+playNote(0-36, 2)
+playNote(4-36, 2)
+'''
+playNote(0-24, 2)
+playNote(4-24, 2)
 
+playNote(0-12, 2)
+playNote(4-12, 2)
 
+playNote(0, 2)
+playNote(4, 2)
 
+playNote(0+12, 2)
+playNote(4+12, 2)
+
+playNote(0+24, 2)
+playNote(4+24, 2)
+
+playNote(0+36, 2)
+playNote(4+36, 2)
+
+#playNote(7-36, 0.5)
+#playNote(11-36, 0.5)
+#playNote(12-36, 0.5)
+
+'''
 
 stream.close()
 pyaudio.PyAudio().terminate()
