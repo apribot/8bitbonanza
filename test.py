@@ -3,6 +3,8 @@ import numpy as np
 import time
 import math
 import pygame
+import pickle
+import sys
 
 noteoffset = 0
 frameptr = 0
@@ -30,7 +32,7 @@ def pitchShift(a, offset):
     m = int((1.0 / factor) * n)
     return linearInterpolateArray(a, n, m)
 
-def setWaveform():
+def generateWaveform():
     global waveforms
     global rawsize
     waveforms = {}
@@ -50,20 +52,45 @@ def setWaveform():
 
         for t in range(0,rawsize,1): 
             waveform.append(  int( ( ((t*8|t>>3)+139)<<4)  % 255 ) )
+            #waveform.append( int( (t/2) * (t/3)) % 255 )
+            #waveform.append( int(t) % 255 )
 
-        raw = pitchShift(waveform, noteoffset)
-        #factor = 255.0 / max(raw)
-        #raw = [ int(x*factor) for x in raw] 
+        raw1 = pitchShift(waveform, noteoffset)
+        #raw2 = pitchShift(waveform, noteoffset-12)
+        raw3 = pitchShift(waveform, noteoffset-24)
+
+        #depth = layerWaves(raw2, raw3)
+        raw = layerWaves(raw3, raw1)
 
         waveforms[noteoffset] = ''.join(map(chr, raw))
 
         while (len(waveforms[noteoffset]) < rawsize):
             waveforms[noteoffset] = waveforms[noteoffset] * 2 
 
-		# normalize
+        # normalize
+        # edit: nah
+        print(noteoffset)
+
+def layerWaves(raw1, raw2):
+    buff = []
+
+    for r1, r2 in zip(raw1, raw2):
+        buff.append(int( (r1 + r2) / 2.0))     
+    
+    return buff
+
        
+def writeWaveform(file):
+    global waveforms
 
+    with open(file, 'wb') as f:
+        pickle.dump(waveforms, f)
 
+def readWaveform(file):
+    global waveforms
+
+    with open(file, 'rb') as f:
+        waveforms = pickle.load(f)
 
 def audioFactory(frame_size): 
     global noteoffset
@@ -93,10 +120,41 @@ def playNote(offset, sleep = 0.5):
     time.sleep(sleep)
     stream.stop_stream()
 
+if len(sys.argv) == 1:
+    print(' -o [file]   create new instrument\n -i [file]   load existing instrument\n\n');
+if len(sys.argv) == 3 and sys.argv[1] == '-o':
+    print('Generating instrument...')
+    generateWaveform()
+    writeWaveform(sys.argv[2])
+    print('Done.')
+elif len(sys.argv) == 3 and sys.argv[1] == '-i':
+    print('Loading...')
+    readWaveform(sys.argv[2])
+    print('Done.')
+    stream=pyaudio.PyAudio().open(
+        format=pyaudio.paInt8,
+        channels=1,
+        rate=44100,
+        output=True,
+        stream_callback=callback
+        )
+    playNote(0, 1)
+    playNote(1, 1)
+    playNote(3, 1)
+    playNote(4, 1)
+    playNote(5, 1)
+    playNote(6, 1)
+    playNote(7, 1)
+    playNote(8, 1)
 
+    stream.close()
+    pyaudio.PyAudio().terminate()
+else:
+    print('Invalid command.\n\n')
+    print(' -o [file]   create new instrument\n -i [file]   load existing instrument\n\n');
 
-
-setWaveform()
+'''
+generateWaveform()
 
 stream=pyaudio.PyAudio().open(
     format=pyaudio.paInt8,
@@ -110,7 +168,7 @@ stream=pyaudio.PyAudio().open(
 
 playNote(0-36, 2)
 playNote(4-36, 2)
-'''
+
 playNote(0-24, 2)
 playNote(4-24, 2)
 
@@ -133,7 +191,9 @@ playNote(4+36, 2)
 #playNote(11-36, 0.5)
 #playNote(12-36, 0.5)
 
-'''
+
 
 stream.close()
 pyaudio.PyAudio().terminate()
+
+'''
