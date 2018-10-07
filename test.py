@@ -138,14 +138,19 @@ elif len(sys.argv) == 3 and sys.argv[1] == '-i':
         output=True,
         stream_callback=callback
         )
-    playNote(0, 1)
-    playNote(1, 1)
+#       1   3       6   8  10
+#   |  |_| |_|  |  |_| |_| |_|  |  |_
+#   |___|___|___|___|___|___|___|___|
+#     0   2   4   5   7   9  11 
+    playNote(2, 1)
     playNote(3, 1)
-    playNote(4, 1)
     playNote(5, 1)
-    playNote(6, 1)
     playNote(7, 1)
-    playNote(8, 1)
+    playNote(2, 1)
+    playNote(3, 1)
+    playNote(5, 1)
+    playNote(7, 1)
+
 
     stream.close()
     pyaudio.PyAudio().terminate()
