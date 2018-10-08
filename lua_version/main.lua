@@ -47,3 +47,7 @@ stopAll(sample)
 
 -- forces this thing to terminate like a normal lua script
 love.event.quit(0)
+
+
+--https://github.com/SiENcE/lovemidi
+-- this looks like the best bet
