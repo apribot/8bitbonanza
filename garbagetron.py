@@ -1,7 +1,3 @@
-#sudo apt-get install ffmpeg libavcodec-extra
-#sudo pip3 install pydub
-
-
 from pydub import AudioSegment
 samplePath = 'test/'
 samples = 1000 * 255
@@ -35,11 +31,6 @@ sound = AudioSegment(
     frame_rate=44100,
     channels=1
 )
-
-#       1   3       6   8  10
-#   |  |_| |_|  |  |_| |_| |_|  |  |_
-#   |___|___|___|___|___|___|___|___|
-#     0   2   4   5   7   9  11 
 
 print('generating')
 for noteoffset in range( (-4*12), (4*12)+1, 1):
