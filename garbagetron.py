@@ -1,6 +1,6 @@
 from pydub import AudioSegment
 samplePath = 'test/'
-samples = 1000 * 255
+samples = 100 * 255
 
 def offsetToNote(offset):
 	offset = offset + (5 * 12)
@@ -8,7 +8,8 @@ def offsetToNote(offset):
 	return notes[offset%12] + str(int(offset/12))
 
 def getWavePoint(t):
-	a = t
+	#a = t
+	a =  t
 	b =  t*(t << 4 & t >> 2)
 	return int((a+b)/2)
 
@@ -23,7 +24,9 @@ def writeWaveAtPitch(snd, instrumentName, noteOffset):
 	new_sample_rate = int(snd.frame_rate * factor)
 	shifted_sound = snd._spawn(snd.raw_data, overrides={'frame_rate': new_sample_rate})
 	shifted_sound = shifted_sound.set_frame_rate(44100)
-	shifted_sound.export(samplePath + instrumentName + "_" + offsetToNote(noteOffset) + ".wav", format="wav")
+	shifted_sound = shifted_sound.set_channels(2)
+	shifted_sound = shifted_sound.set_sample_width(2)
+	shifted_sound.export(samplePath + instrumentName + "_" + str(noteOffset+(12*6)) + ".wav", format="wav")
 
 sound = AudioSegment(
     data=getWave(samples).encode(),
@@ -33,7 +36,7 @@ sound = AudioSegment(
 )
 
 print('generating')
-for noteoffset in range( (-4*12), (4*12)+1, 1):
+for noteoffset in range( (-5*12), (4*12)+1, 1):
 	writeWaveAtPitch(sound, 'test', noteoffset)
-	print(offsetToNote(noteoffset) + ' ', end="", flush=True)
+	print(str(noteoffset+(12*6)) + ' ', end="", flush=True)
 print('done')
