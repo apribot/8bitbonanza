@@ -7,16 +7,15 @@ def offsetToNote(offset):
 	notes = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
 	return notes[offset%12] + str(int(offset/12))
 
-def getWavePoint(t):
-	#a = t
-	a =  t
-	b =  t*(t << 4 & t >> 2)
+def getWavePoint(t, formulaA, formulaB):
+	a =  eval(formulaA)
+	b =  eval(formulaB)
 	return int((a+b)/2)
 
-def getWave(length):
+def getWave(length, formulaA, formulaB):
 	outp = ''
 	for t in range(1,length):
-		outp+=chr(getWavePoint(t%255))
+		outp+=chr(getWavePoint(t%255, formulaA, formulaB))
 	return outp
 
 def writeWaveAtPitch(snd, instrumentName, noteOffset):
@@ -28,8 +27,12 @@ def writeWaveAtPitch(snd, instrumentName, noteOffset):
 	shifted_sound = shifted_sound.set_sample_width(2)
 	shifted_sound.export(samplePath + instrumentName + "_" + str(noteOffset+(12*6)) + ".wav", format="wav")
 
+
+formulaA = 't'
+formulaB = 't*(t << 4 & t >> 2)'
+
 sound = AudioSegment(
-    data=getWave(samples).encode(),
+    data=getWave(samples, formulaA, formulaB).encode(),
     sample_width=1,
     frame_rate=44100,
     channels=1
