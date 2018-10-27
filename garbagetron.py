@@ -1,5 +1,7 @@
 from pydub import AudioSegment
-samplePath = '0 test/'
+import struct
+
+samplePath = 'test/'
 samples = 100 * 255
 
 def offsetToNote(offset):
@@ -25,7 +27,20 @@ def writeWaveAtPitch(snd, instrumentName, noteOffset):
 	shifted_sound = shifted_sound.set_frame_rate(44100)
 	shifted_sound = shifted_sound.set_channels(2)
 	shifted_sound = shifted_sound.set_sample_width(2)
-	shifted_sound.export(samplePath +  str(noteOffset+(12*6)) + ".wav", format="wav")
+	shifted_sound.export(samplePath + str(noteOffset+(12*6)) + ".wav", format="wav")
+
+	# filthy hack for looping :(
+	# no idea if this works!
+	endofloop = int(samples * factor) #maybe???
+	fid = open(samplePath + str(noteOffset+(12*6)) + ".wav", 'ab')
+	fid.write(b'smpl')
+	size = 36 + 24
+	fid.write(struct.pack('<iiiiiIiiii', size, 0, 0, 0, 0, 0, 0, 0, 1, 0))
+	fid.write(struct.pack('<iiiiii', 0, 0, 0, endofloop, 0, 0))
+	fid.close()
+
+
+
 
 
 formulaA = 't'
@@ -43,3 +58,5 @@ for noteoffset in range( (-5*12), (4*12)+1, 1):
 	writeWaveAtPitch(sound, 'test', noteoffset)
 	print(str(noteoffset+(12*6)) + ' ', end="", flush=True)
 print('done')
+
+
