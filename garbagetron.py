@@ -13,7 +13,7 @@ def offsetToNote(offset):
 def getWavePoint(t, formulaA, formulaB):
 	a =  eval(formulaA)
 	b =  eval(formulaB)
-	return int((a+b)/2)
+	return int((a+b)/2) % 255
 
 def getWave(length, formulaA, formulaB):
 	outp = ''
@@ -67,7 +67,7 @@ sound = AudioSegment(
 print('generating')
 for noteoffset in range( (-5*12), (4*12)+1, 1):
 	writeWaveAtPitch(sound, 'test', noteoffset)
-	print(str(noteoffset+(12*6)) + ' ', end="", flush=True)
+	print(str(noteoffset+(12*6)))
 print('done')
 
 
