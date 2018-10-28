@@ -1,3 +1,4 @@
 *.dat
 test
 0 test
+__pycache__
