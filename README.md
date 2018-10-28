@@ -5,6 +5,8 @@ A lightweight, dirty 8bit 'VCO'. Intended to work with SamplerBox on the Raspber
 
 weird algorithms create gross waveforms based on a counter in a loop.
 
+pythön, may i hävë thë sämplë lööps?
+
 ##dependencies
 
 `sudo apt-get install ffmpeg libavcodec-extra`
