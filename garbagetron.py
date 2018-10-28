@@ -46,7 +46,7 @@ def writeWaveAtPitch(snd, instrumentName, noteOffset):
 				'cuepointid': 0,
 				'datatype': 0,
 				'start': 0,
-				'end': int(samples * factor),
+				'end': len(thing[1]),
 				'fraction': 0,
 				'playcount': 0
 			}
