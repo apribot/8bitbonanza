@@ -22,23 +22,23 @@ def getWave(length, formulaA, formulaB):
 	return outp
 
 def writeWaveAtPitch(snd, instrumentName, noteOffset):
+	fileName = samplePath + str(noteOffset+(12*6)) + ".wav"
 	factor = 2.0 ** (1.0 * noteOffset / 12.0)
 	new_sample_rate = int(snd.frame_rate * factor)
+
 	shifted_sound = snd._spawn(snd.raw_data, overrides={'frame_rate': new_sample_rate})
 	shifted_sound = shifted_sound.set_frame_rate(44100)
 	shifted_sound = shifted_sound.set_channels(2)
 	shifted_sound = shifted_sound.set_sample_width(2)
-	#this is impossibly slow so... nah.
-	#shifted_sound = shifted_sound.low_pass_filter(500)
-	shifted_sound.export(samplePath + str(noteOffset+(12*6)) + ".wav", format="wav")
+	shifted_sound.export(fileName, format="wav")
 
 	# filthy hack for looping :(
 	thing = wavfile.read(
-		samplePath + str(noteOffset+(12*6)) + ".wav", 
+		fileName 
 	)
 	
 	wavfile.write(
-		samplePath + str(noteOffset+(12*6)) + ".wav",
+		fileName,
 		thing[0],
 		thing[1],
 		loops=[
