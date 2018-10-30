@@ -1,8 +1,10 @@
 from pydub import AudioSegment
 import struct
 import wavfile
+import yaml
+import os
 
-samplePath = '0 test/'
+config = yaml.safe_load(open("stolen_presets.yaml"))
 samples = 100 * 255
 
 def offsetToNote(offset):
@@ -21,8 +23,8 @@ def getWave(length, formulaA, formulaB):
 		outp+=chr(getWavePoint(t%255, formulaA, formulaB))
 	return outp
 
-def writeWaveAtPitch(snd, instrumentName, noteOffset):
-	fileName = samplePath + str(noteOffset+(12*6)) + ".wav"
+def writeWaveAtPitch(snd, instrumentName, noteOffset, samplePath):
+	fileName = samplePath + '/' + str(noteOffset+(12*6)) + ".wav"
 	factor = 2.0 ** (1.0 * noteOffset / 12.0)
 	new_sample_rate = int(snd.frame_rate * factor)
 
@@ -54,20 +56,29 @@ def writeWaveAtPitch(snd, instrumentName, noteOffset):
 	)
 
 
-formulaA = 't'
-formulaB = 't*(t << 4 & t >> 2)'
 
-sound = AudioSegment(
-    data=getWave(samples, formulaA, formulaB).encode(),
-    sample_width=1,
-    frame_rate=44100,
-    channels=1
-)
+cnt = 0
 
-print('generating')
-for noteoffset in range( (-5*12), (4*12)+1, 1):
-	writeWaveAtPitch(sound, 'test', noteoffset)
-	print(str(noteoffset+(12*6)))
-print('done')
+for x in config:
 
+	directory = str(cnt) + ' ' + x
+	print('generating ' + x)
+
+
+	sound = AudioSegment(
+		data=getWave(samples, config[x]['a'], config[x]['b']).encode(),
+		sample_width=1,
+		frame_rate=44100,
+		channels=1
+	)
+
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+	
+	for noteoffset in range( (-5*12), (4*12)+1, 1):
+		writeWaveAtPitch(sound, x, noteoffset, directory)
+		print(str(noteoffset+(12*6)) + ' ', end="", flush=True)
+	print('\ndone')
+
+	cnt = cnt+1
 
