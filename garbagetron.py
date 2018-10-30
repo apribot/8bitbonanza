@@ -15,12 +15,12 @@ def offsetToNote(offset):
 def getWavePoint(t, formulaA, formulaB):
 	a =  eval(formulaA)
 	b =  eval(formulaB)
-	return int((a+b)/2) % 255
+	return int((a+b) * 0.5) % 255
 
 def getWave(length, formulaA, formulaB):
 	outp = ''
 	for t in range(1,length):
-		outp+=chr(getWavePoint(t%255, formulaA, formulaB))
+		outp+=chr(getWavePoint(t, formulaA, formulaB))
 	return outp
 
 def writeWaveAtPitch(snd, instrumentName, noteOffset, samplePath):
@@ -82,3 +82,4 @@ for x in config:
 
 	cnt = cnt+1
 
+	break
