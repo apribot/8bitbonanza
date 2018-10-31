@@ -375,7 +375,7 @@ def write(filename, rate, data, bitrate=None, markers=None, loops=None, pitch=No
     data.tofile(fid)
 
     if data.nbytes % 2 == 1: # add an extra padding byte if data.nbytes is odd: https://web.archive.org/web/20141226210234/http://www.sonicspot.com/guide/wavefiles.html#data
-        fid.write('\x00')
+        fid.write(b'\x00')
 
     # This need to be made modular !
     if infos:
