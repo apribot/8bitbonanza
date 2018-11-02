@@ -5,6 +5,9 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <vector>
+
 
 using namespace std;
 
@@ -19,6 +22,27 @@ namespace little_endian_io
   }
 }
 using namespace little_endian_io;
+
+
+
+vector< vector<string> > getSettings(string filename) {
+    ifstream in(filename);
+    string line, field;
+    vector< vector<string> > array;  // the 2D array
+    vector<string> v;                // array of values for one line only
+
+    while ( getline(in,line) )    // get next line in file
+    {
+        v.clear();
+        stringstream ss(line);
+        while (getline(ss,field,',')) { // break line into comma delimitted fields
+            v.push_back(field);  // add each field to the 1D array
+        }
+        array.push_back(v);  // add the 1D array to the 2D array
+    }
+    return array;
+}
+
 
 
 void makeWav(string filename, double noteOffset) {
@@ -96,9 +120,20 @@ int middleCOffsetToMIDINote(int offset) {
 
 int main() {
 
+
   for (int note = (-4 * 12); note < (4 * 12) + 1; ++note) {
     makeWav( to_string(middleCOffsetToMIDINote(note)) + ".wav" , note);
   }
+
+  /*
+  vector< vector<string> > array = getSettings("settings.dat");
+  for (size_t i=0; i<array.size(); ++i) {
+    cout << "generating " << array[i][0];
+    
+    cout << "\n";
+  }
+  */
+
 
 
 }
