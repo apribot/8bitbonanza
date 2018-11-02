@@ -85,6 +85,9 @@ void makeWav(string filename, double noteOffset) {
   // Fix the file header to contain the proper RIFF chunk size, which is (file size - 8) bytes
   f.seekp( 0 + 4 );
   write_word( f, file_length - 8, 4 ); 
+
+
+  //TODO: add in that garbage for the smpl loop points
 }
 
 int middleCOffsetToMIDINote(int offset) {
