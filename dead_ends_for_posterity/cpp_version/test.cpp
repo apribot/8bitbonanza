@@ -56,9 +56,13 @@ void makeWav(string filename, double noteOffset) {
 
     int t = i * factor;
 
-    int a = (t*1000+t>>106|t*108)/(t+1);
-    int b = (t*(7+(1^t>>9%5)));
+//    int a = (t*1000+t>>106|t*108)/(t+1);
+//    int b = (t*(7+(1^t>>9%5)));
 
+    int a = (t*(t>>9+t>>9)*100);
+    int b = t;
+    //int a = ((t/256)*(t/128))<<69;
+    //int b = (t/128)*(t/16)/2;
     //int a = t;
     //int b = t;
 
@@ -83,10 +87,14 @@ void makeWav(string filename, double noteOffset) {
   write_word( f, file_length - 8, 4 ); 
 }
 
+int middleCOffsetToMIDINote(int offset) {
+  return offset + (12 * 6); 
+}
+
 int main() {
 
-  for (int note = (-5 * 12); note < (4 * 12) + 1; ++note) {
-    makeWav( to_string(note) + ".wav" , note);
+  for (int note = (-4 * 12); note < (4 * 12) + 1; ++note) {
+    makeWav( to_string(middleCOffsetToMIDINote(note)) + ".wav" , note);
   }
 
 
