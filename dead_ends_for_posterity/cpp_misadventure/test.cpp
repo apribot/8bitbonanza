@@ -123,8 +123,9 @@ int main() {
 
   for (int note = (-4 * 12); note < (4 * 12) + 1; ++note) {
     makeWav( to_string(middleCOffsetToMIDINote(note)) + ".wav" , note);
+    break;
   }
-
+  
   /*
   vector< vector<string> > array = getSettings("settings.dat");
   for (size_t i=0; i<array.size(); ++i) {
