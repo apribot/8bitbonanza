@@ -17,16 +17,17 @@ def write_word(f, value, size = -1):
 
 
 
-def makeWav(fileName, noteOffset):
+def makeWav(fileName, noteOffset, formulaA, formulaB):
 
 	max_amplitude = 65536
 	hz		      = 44100	 # samples per second
 	frequency     = 261.626   # middle C
-	seconds       = 0.1	   # time
+	seconds       = 3.0	   # time
 
-	factor = 2 ^ (1 * noteOffset / 12)
+	factor = 2 ** (1.0 * noteOffset / 12.0)
 
 	N = int((hz * seconds) * (1.0 / factor))  # total number of samples
+
 
 	with open(fileName, 'wb+') as f:
 		f.write("RIFF----WAVEfmt ")
@@ -67,10 +68,10 @@ def makeWav(fileName, noteOffset):
 		f.write("data----")		  #  // (chunk size to be filled in later)
 
 		for i in range(1,N):
-			t = i * factor
+			t = int(i * factor)
 
-			a = (t*(t>>9+t>>9)*100)
-			b = t
+			a = formulaA(t)
+			b = formulaB(t)
 
 			a = a % 255
 			b = b % 255
@@ -82,10 +83,6 @@ def makeWav(fileName, noteOffset):
 
 		file_length = f.tell()
 
-
-
-
-
 		# Fix the data chunk header to contain the data size
 		f.seek( data_chunk_pos + 4 )
 		write_word( f, file_length - data_chunk_pos + 8 )
@@ -95,5 +92,10 @@ def makeWav(fileName, noteOffset):
 		write_word( f, file_length - 8, 4 ) 
 
 
+# replace time and associated calculations with a factor of 256 for better loops
+# need uh, to uh.... add in directory making and whatnot
 
-makeWav('test.wav', 0)
+a = lambda t: (((t%16)<<6)/8|t%255|t)-12
+b = lambda t: (((t%16)<<6)/8|t%255|t)-100
+
+makeWav('test.wav', -24, a, b)
