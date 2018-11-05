@@ -89,6 +89,9 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 		write_word( f, file_length - 8, 4 ) 
 
 
+# debug just saw
+# settings = {'0 saw': settings['0 saw']}
+
 for key in settings:
 	directory = key
 	formulaA = settings[key]['a']

@@ -1,5 +1,5 @@
 settings = {
-'0 saw':{'a': (lambda t : t), 'b': (lambda t: t)},
+'0 saw':{'a': (lambda t : t), 'b': (lambda t: (t%128)*2 )},
 '1 ANGRY ROBOT':{'a': (lambda t : t*(t<<3|t>>1)), 'b': (lambda t: t*(t<<3+t>>1))},
 '2 ARP 7':{'a': (lambda t : (t*1000+t>>106|t*108)/(t+1)), 'b': (lambda t: (t*(7+(1^t>>9%5))))},
 '3 BAD GUY THEME':{'a': (lambda t : ((-t&4095)*(1000000&t*(t&t>>10)))), 'b': (lambda t: (1007&t*(904&t>>8&t>>3)>>(3&t>>4)))},
