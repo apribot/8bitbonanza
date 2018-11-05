@@ -1,4 +1,7 @@
 import sys
+from settings import *
+import os
+
 
 def write_word(f, value, size = -1):
 	#a hack because i can't do size = sizeof(value) in args i guess?
@@ -15,23 +18,18 @@ def write_word(f, value, size = -1):
 	f.write(bytearray(lst))
 
 
-
-
 def makeWav(fileName, noteOffset, formulaA, formulaB):
+
+	noteOffset = noteOffset - 4.5# pitch fix
 
 	max_amplitude = 65536
 	hz		      = 44100	 # samples per second
-	frequency     = 261.626   # middle C
-	seconds       = 3.0	   # time
 
 	factor = 2 ** (1.0 * noteOffset / 12.0)
-
-	N = int((hz * seconds) * (1.0 / factor))  # total number of samples
-
+	N = int((256 * 500) * (1.0 / factor))  # total number of samples
 
 	with open(fileName, 'wb+') as f:
 		f.write("RIFF----WAVEfmt ")
-
 		write_word( f,	 16, 4 )  # no extension data
 		write_word( f,	  1, 2 )  # PCM - integer samples
 		write_word( f,	  2, 2 )  # two channels (stereo file)
@@ -42,30 +40,29 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 
 		f.write("smpl")
 
-		size = 36 + 24
 		sampleperiod = int(1000000000.0 / hz)
 		
-		write_word( f, size, 4 ) # size, baby
-		write_word( f, 0, 4 ) # manufacturer
-		write_word( f, 0, 4 ) # product
+		write_word( f, 60, 4 ) # size, baby. hard 60 because the number of fields isn't changing
+		write_word( f, 0, 4 )  # manufacturer
+		write_word( f, 0, 4 )  # product
 		write_word( f, sampleperiod, 4 ) # sample period
-		write_word( f, 0, 4 ) # midi unity note
-		write_word( f, 0, 4 ) # midi pitch fraction
-		write_word( f, 0, 4 ) # smpte format
-		write_word( f, 0, 4 ) # smpte offset
-		write_word( f, 1, 4 ) # num sample loops
-		write_word( f, 0, 4 ) # sampler data
+		write_word( f, 0, 4 )  # midi unity note
+		write_word( f, 0, 4 )  # midi pitch fraction
+		write_word( f, 0, 4 )  # smpte format
+		write_word( f, 0, 4 )  # smpte offset
+		write_word( f, 1, 4 )  # num sample loops
+		write_word( f, 0, 4 )  # sampler data
 		# list of sample loops
-		write_word( f, 0, 4 ) # cutepointid
-		write_word( f, 0, 4 ) # datatype
-		write_word( f, 0, 4 ) # start
-		write_word( f, N, 4 ) # end
-		write_word( f, 0, 4 ) # fraction
-		write_word( f, 0, 4 ) # playcount
+		write_word( f, 0, 4 )  # cutepointid
+		write_word( f, 0, 4 )  # datatype
+		write_word( f, 0, 4 )  # start
+		write_word( f, N, 4 )  # end
+		write_word( f, 0, 4 )  # fraction
+		write_word( f, 0, 4 )  # playcount
 
 	 	data_chunk_pos = f.tell()
 
-		f.write("data----")		  #  // (chunk size to be filled in later)
+		f.write("data----")	   # (chunk size to be filled in later)
 
 		for i in range(1,N):
 			t = int(i * factor)
@@ -92,10 +89,18 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 		write_word( f, file_length - 8, 4 ) 
 
 
-# replace time and associated calculations with a factor of 256 for better loops
-# need uh, to uh.... add in directory making and whatnot
+for key in settings:
+	directory = key
+	formulaA = settings[key]['a']
+	formulaB = settings[key]['b']
 
-a = lambda t: (((t%16)<<6)/8|t%255|t)-12
-b = lambda t: (((t%16)<<6)/8|t%255|t)-100
+	print('generating ' + directory)
 
-makeWav('test.wav', -24, a, b)
+	if not os.path.exists(directory):
+		os.makedirs(directory)
+
+	# this needs to be made less insane, as does the note fix above
+	for offset in range( -12, 36 ,12 ):
+		print( str(offset+(48)) + ' ')
+		makeWav(directory + '/' + str(offset+(48)) + '.wav', offset, formulaA, formulaB)
+
