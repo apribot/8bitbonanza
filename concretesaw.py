@@ -29,7 +29,7 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 	N = int((256 * 500) * (1.0 / factor))  # total number of samples
 
 	with open(fileName, 'wb+') as f:
-		f.write("RIFF----WAVEfmt ")
+		f.write(b'RIFF----WAVEfmt ')
 		write_word( f,	   16, 4 )  # no extension data
 		write_word( f,	    1, 2 )  # PCM - integer samples
 		write_word( f,	    2, 2 )  # two channels (stereo file)
@@ -38,7 +38,7 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 		write_word( f,	    4, 2 )  # data block size (size of two integer samples, one for each channel, in bytes)
 		write_word( f,	   16, 2 )  # number of bits per sample (use a multiple of 8)
 
-		f.write("smpl")
+		f.write(b'smpl')
 
 		sampleperiod = int(1000000000.0 / hz)
 		
@@ -60,9 +60,9 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 		write_word( f, 0, 4 )  # fraction
 		write_word( f, 0, 4 )  # playcount
 
-	 	data_chunk_pos = f.tell()
+		data_chunk_pos = f.tell()
 
-		f.write("data----")	   # (chunk size to be filled in later)
+		f.write(b'data----')	   # (chunk size to be filled in later)
 
 		for i in range(1,N):
 			t = int(i * factor)
@@ -75,8 +75,8 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 
 			point = (((a + b) / 2) * (max_amplitude / 255)) - (max_amplitude / 2)
 
-			write_word( f, point, 2 )
-			write_word( f, point, 2 )
+			write_word( f, int(point), 2 )
+			write_word( f, int(point), 2 )
 
 		file_length = f.tell()
 
@@ -90,9 +90,13 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 
 
 # debug just saw
-settings = {'0 saw': settings['0 saw']}
+#settings = {'0 saw': settings['0 saw']}
+#32 GRIT BASS is messed up. re-check wav standard... i thing we're missing
+# padding or something
+patches = settings.keys()
+bleh = sorted(patches)
 
-for key in settings:
+for key in bleh:
 	directory = key
 	formulaA = settings[key]['a']
 	formulaB = settings[key]['b']

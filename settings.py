@@ -44,7 +44,7 @@ settings = {
 '42 SKAROT':{'a': (lambda t : (t^t%127)), 'b': (lambda t: t)},
 '43 SQUARE BITS':{'a': (lambda t : (t/128)<<7), 'b': (lambda t: t)},
 '44 SQUARE SAW':{'a': (lambda t : (t/128)<<7+t>>2), 'b': (lambda t: t)},
-'45 TAKE OFF':{'a': (lambda t : t*t>>10|t/((t&10*t)+1)), 'b': (lambda t: t*40*t)},
+'45 TAKE OFF':{'a': (lambda t : t*t>>10|int(t/((t&10*t)+1))), 'b': (lambda t: t*40*t)},
 '46 TENSION':{'a': (lambda t : (t*2&t*(99&t>>4&t>>9))), 'b': (lambda t: t)},
 '47 WAKE UP ALARM':{'a': (lambda t : (t/7&t*(900&t))), 'b': (lambda t: t)},
 '48 WALL EE':{'a': (lambda t : t&128|((t*5)&128)), 'b': (lambda t: t&128|((t*7)&128))},
