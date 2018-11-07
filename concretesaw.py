@@ -30,28 +30,28 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 
 	with open(fileName, 'wb+') as f:
 		f.write("RIFF----WAVEfmt ")
-		write_word( f,	 16, 4 )  # no extension data
-		write_word( f,	  1, 2 )  # PCM - integer samples
-		write_word( f,	  2, 2 )  # two channels (stereo file)
-		write_word( f, hz, 4 )  # samples per second (Hz)
+		write_word( f,	   16, 4 )  # no extension data
+		write_word( f,	    1, 2 )  # PCM - integer samples
+		write_word( f,	    2, 2 )  # two channels (stereo file)
+		write_word( f,     hz, 4 )  # samples per second (Hz)
 		write_word( f, 176400, 4 )  # (Sample hz * BitsPerSample * Channels) / 8
-		write_word( f,	  4, 2 )  # data block size (size of two integer samples, one for each channel, in bytes)
-		write_word( f,	 16, 2 )  # number of bits per sample (use a multiple of 8)
+		write_word( f,	    4, 2 )  # data block size (size of two integer samples, one for each channel, in bytes)
+		write_word( f,	   16, 2 )  # number of bits per sample (use a multiple of 8)
 
 		f.write("smpl")
 
 		sampleperiod = int(1000000000.0 / hz)
 		
-		write_word( f, 60, 4 ) # size, baby. hard 60 because the number of fields isn't changing
-		write_word( f, 0, 4 )  # manufacturer
-		write_word( f, 0, 4 )  # product
-		write_word( f, sampleperiod, 4 ) # sample period
-		write_word( f, 0, 4 )  # midi unity note
-		write_word( f, 0, 4 )  # midi pitch fraction
-		write_word( f, 0, 4 )  # smpte format
-		write_word( f, 0, 4 )  # smpte offset
-		write_word( f, 1, 4 )  # num sample loops
-		write_word( f, 0, 4 )  # sampler data
+		write_word( f,           60, 4 )  # size, baby. hard 60 because the number of fields isn't changing
+		write_word( f,            0, 4 )  # manufacturer
+		write_word( f,            0, 4 )  # product
+		write_word( f, sampleperiod, 4 )  # sample period
+		write_word( f,            0, 4 )  # midi unity note
+		write_word( f,            0, 4 )  # midi pitch fraction
+		write_word( f,            0, 4 )  # smpte format
+		write_word( f,            0, 4 )  # smpte offset
+		write_word( f,            1, 4 )  # num sample loops
+		write_word( f,            0, 4 )  # sampler data
 		# list of sample loops
 		write_word( f, 0, 4 )  # cutepointid
 		write_word( f, 0, 4 )  # datatype
@@ -84,13 +84,13 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 		f.seek( data_chunk_pos + 4 )
 		write_word( f, file_length - data_chunk_pos + 8 )
 
-		# Fix the file header to contain the proper RIFF chunk size, which is (file size - 8) bytes
+		# Fix the file header to contain the proper RIFF chunk size, which is (file size - 8, minus the damn sample block i guess?) bytes
 		f.seek( 0 + 4 );
-		write_word( f, file_length - 8, 4 ) 
+		write_word( f, file_length - 8 + 16, 4 ) #some how the normal 8 padding isn't enough for SamplerBox, 24 appears to work 
 
 
 # debug just saw
-# settings = {'0 saw': settings['0 saw']}
+settings = {'0 saw': settings['0 saw']}
 
 for key in settings:
 	directory = key
