@@ -28,6 +28,10 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 	factor = 2 ** (1.0 * noteOffset / 12.0)
 	N = int((256 * 500) * (1.0 / factor))  # total number of samples
 
+	# data chunk length must either be an even number or we have to write a pad byte to the header and i ain't about that life 
+	if N % 2 != 0: #is odd
+		N = N+1
+
 	with open(fileName, 'wb+') as f:
 		f.write(b'RIFF----WAVEfmt ')
 		write_word( f,	   16, 4 )  # no extension data
@@ -38,6 +42,25 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 		write_word( f,	    4, 2 )  # data block size (size of two integer samples, one for each channel, in bytes)
 		write_word( f,	   16, 2 )  # number of bits per sample (use a multiple of 8)
 
+		data_chunk_pos = f.tell()
+
+		f.write(b'data----')	   # (chunk size to be filled in later)
+
+		for i in range(0,N):
+			t = int(i * factor)
+
+			a = formulaA(t)
+			b = formulaB(t)
+
+			a = a % 255
+			b = b % 255
+
+			point = (((a + b) / 2) * (max_amplitude / 255)) - (max_amplitude / 2)
+
+			write_word( f, int(point), 2 )
+			write_word( f, int(point), 2 )
+
+	
 		f.write(b'smpl')
 
 		sampleperiod = int(1000000000.0 / hz)
@@ -60,37 +83,24 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 		write_word( f, 0, 4 )  # fraction
 		write_word( f, 0, 4 )  # playcount
 
-		data_chunk_pos = f.tell()
+		
 
-		f.write(b'data----')	   # (chunk size to be filled in later)
-
-		for i in range(1,N):
-			t = int(i * factor)
-
-			a = formulaA(t)
-			b = formulaB(t)
-
-			a = a % 255
-			b = b % 255
-
-			point = (((a + b) / 2) * (max_amplitude / 255)) - (max_amplitude / 2)
-
-			write_word( f, int(point), 2 )
-			write_word( f, int(point), 2 )
 
 		file_length = f.tell()
-
 		# Fix the data chunk header to contain the data size
 		f.seek( data_chunk_pos + 4 )
-		write_word( f, file_length - data_chunk_pos + 8 )
+		write_word( f, (N * 4), 4 )
 
 		# Fix the file header to contain the proper RIFF chunk size, which is (file size - 8, minus the damn sample block i guess?) bytes
 		f.seek( 0 + 4 );
-		write_word( f, file_length - 8 + 16, 4 ) #some how the normal 8 padding isn't enough for SamplerBox, 24 appears to work 
+		write_word( f, file_length - 8, 4 ) #some how the normal 8 padding isn't enough for SamplerBox, 24 appears to work 
+		f.seek(file_length)
 
 
 # debug just saw
-#settings = {'0 saw': settings['0 saw']}
+#settings = {'0 saw':{'a': (lambda t : 1), 'b': (lambda t: 1 )}}
+settings = {'0 saw': settings['0 saw']}
+
 #32 GRIT BASS is messed up. re-check wav standard... i thing we're missing
 # padding or something
 patches = settings.keys()
