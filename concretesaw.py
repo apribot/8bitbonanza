@@ -100,7 +100,7 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 # debug just saw
 #settings = {'0 saw':{'a': (lambda t : 1), 'b': (lambda t: 1 )}}
 #settings = {'0 saw': settings['0 saw']}
-settings = {'23 GRIT BASS':{'a': (lambda t : (t>>t*t)^t), 'b': (lambda t: t)}}
+#settings = {'23 GRIT BASS':{'a': (lambda t : (t>>t*t)^t), 'b': (lambda t: t)}}
 #32 GRIT BASS is messed up. re-check wav standard... i thing we're missing
 # padding or something
 patches = settings.keys()
@@ -117,7 +117,7 @@ for key in bleh:
 		os.makedirs(directory)
 
 	# this needs to be made less insane, as does the note fix above
-	for offset in range( -12, 36 ,12 ):
+	for offset in range( -24, 36 ,12 ):
 		print( str(offset+(48)) + ' ')
 		makeWav(directory + '/' + str(offset+(48)) + '.wav', offset, formulaA, formulaB)
 
