@@ -99,8 +99,8 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 
 # debug just saw
 #settings = {'0 saw':{'a': (lambda t : 1), 'b': (lambda t: 1 )}}
-settings = {'0 saw': settings['0 saw']}
-
+#settings = {'0 saw': settings['0 saw']}
+settings = {'23 GRIT BASS':{'a': (lambda t : (t>>t*t)^t), 'b': (lambda t: t)}}
 #32 GRIT BASS is messed up. re-check wav standard... i thing we're missing
 # padding or something
 patches = settings.keys()

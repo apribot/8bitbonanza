@@ -1,0 +1,37 @@
+--python3
+generating 23 GRIT BASS
+36 
+Traceback (most recent call last):
+  File "concretesaw.py", line 122, in <module>
+    makeWav(directory + '/' + str(offset+(48)) + '.wav', offset, formulaA, formulaB)
+  File "concretesaw.py", line 52, in makeWav
+    a = formulaA(t)
+  File "concretesaw.py", line 103, in <lambda>
+    settings = {'23 GRIT BASS':{'a': (lambda t : (t>>t*t)^t), 'b': (lambda t: t)}}
+OverflowError: Python int too large to convert to C ssize_t
+
+--python2
+
+generating 23 GRIT BASS
+36 
+Traceback (most recent call last):
+  File "concretesaw.py", line 122, in <module>
+    makeWav(directory + '/' + str(offset+(48)) + '.wav', offset, formulaA, formulaB)
+  File "concretesaw.py", line 52, in makeWav
+    a = formulaA(t)
+  File "concretesaw.py", line 103, in <lambda>
+    settings = {'23 GRIT BASS':{'a': (lambda t : (t>>t*t)^t), 'b': (lambda t: t)}}
+OverflowError: long int too large to convert to int
+
+--python
+
+generating 23 GRIT BASS
+36 
+Traceback (most recent call last):
+  File "concretesaw.py", line 122, in <module>
+    makeWav(directory + '/' + str(offset+(48)) + '.wav', offset, formulaA, formulaB)
+  File "concretesaw.py", line 52, in makeWav
+    a = formulaA(t)
+  File "concretesaw.py", line 103, in <lambda>
+    settings = {'23 GRIT BASS':{'a': (lambda t : (t>>t*t)^t), 'b': (lambda t: t)}}
+OverflowError: long int too large to convert to int
