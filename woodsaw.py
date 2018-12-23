@@ -1,7 +1,7 @@
 import sys
 from settings1 import *
 import os
-
+import math
 
 def write_word(f, value, size = -1):
 	#a hack because i can't do size = sizeof(value) in args i guess?
@@ -17,19 +17,19 @@ def write_word(f, value, size = -1):
 
 	f.write(bytearray(lst))
 
-def squarewave(t, duty = 0.5):
-	if t % 256 < 256 * duty:
-		return 255
-	else
-		return 0 
+def squarewave(t, duty):
+	if t % 256 < 256.0 * duty:
+		return -1.0
+	else:
+		return 1.0
 
 def sinewave(t):
-	return int((sin(t / 256.0 * pi() * 2) + 1) * (256/2))
+	return math.sin(t / 256.0 * math.pi * 2.0)
 
 def sawwave(t):
-	return (t % (256/2)) * 2
+	return (t%(256.0))/(127.0/2.0)-1.0
 
-def makeWav(fileName, noteOffset, formulaA, formulaB):
+def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subSineLvl):
 
 	noteOffset = noteOffset - 4.5# pitch fix
 
@@ -60,14 +60,17 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 		for i in range(0,N):
 			t = int(i * factor)
 
-			a = formulaA(t)
-			b = formulaB(t)
+			sqr = squarewave(t, squareDuty)
+			sin = sinewave(t)
+			saw = sawwave(t)
+			subsqr = squarewave(t/2, subSquareDuty)
+			subsin = sinewave(t/2)
 
-			a = a % 255
-			b = b % 255
+			divisor = (squareLvl + sineLvl + sawLvl + subSineLvl + subSquareLvl)
 
-			point = (((a + b) / 2) * (max_amplitude / 255)) - (max_amplitude / 2)
-
+			prepoint = (  ( (sqr * squareLvl) + (sin * sineLvl) + (saw * sawLvl) + (subsqr * subSquareLvl) + (subsin * subSineLvl) ) / divisor  )
+			prepoint = ((prepoint + 1.0) / 2.0) * 255
+			point = (prepoint * (max_amplitude / 255)) - (max_amplitude / 2)
 			write_word( f, int(point), 2 )
 			write_word( f, int(point), 2 )
 
@@ -110,26 +113,44 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 
 # debug just saw
 #settings = {'0 saw':{'a': (lambda t : t*((t>>12|t>>8)&63&t>>4)), 'b': (lambda t: t*((t>>12|t>>8)&63&t>>4) )}}
-settings = {'57 nova': {'a': (lambda t : t*((t>>7|t>>10)|84&t|t<<26)), 'b': (lambda t: t*((t>>7|t>>10)|84&t|t<<27))}}
+#settings = {'57 nova': {'a': (lambda t : t*((t>>7|t>>10)|84&t|t<<26)), 'b': (lambda t: t*((t>>7|t>>10)|84&t|t<<27))}}
 #settings = {'23 GRIT BASS':{'a': (lambda t : (t>>t*t)^t), 'b': (lambda t: t)}}
 #32 GRIT BASS is messed up. re-check wav standard... i thing we're missing
 # padding or something
 
-patches = settings.keys()
-bleh = sorted(patches)
+#patches = settings.keys()
+#bleh = sorted(patches)
 
-for key in bleh:
-	directory = key
-	formulaA = settings[key]['a']
-	formulaB = settings[key]['b']
+#for key in bleh:
+directory = 'TEST'
+#formulaA = settings[key]['a']
+#formulaB = settings[key]['b']
 
-	print('generating ' + directory)
+print('generating ' + directory)
 
-	if not os.path.exists(directory):
-		os.makedirs(directory)
+if not os.path.exists(directory):
+	os.makedirs(directory)
 
-	# this needs to be made less insane, as does the note fix above
-	for offset in range( -24, 36 ,12 ):
-		print( str(offset+(48)) + ' ')
-		makeWav(directory + '/' + str(offset+(48)) + '.wav', offset, formulaA, formulaB)
+# this needs to be made less insane, as does the note fix above
+#	for offset in range( -24, 36 ,12 ):
+#		print( str(offset+(48)) + ' ')
 
+sawLvl        = 0.5
+sineLvl       = 0.5
+squareLvl     = 0.0
+squareDuty    = 0.125
+subSquareLvl  = 1.0
+subSquareDuty = 0.50
+subSineLvl    = 0.0
+offset = 0
+makeWav(
+	directory + '/' + str(offset+(48)) + '.wav', 
+	offset, 
+	sawLvl, 
+	sineLvl, 
+	squareLvl, 
+	squareDuty,
+	subSquareLvl, 
+	subSquareDuty, 
+	subSineLvl
+)

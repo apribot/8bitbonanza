@@ -1,0 +1,13 @@
+t%255+t%64|t*5|t/10
+t&-t/30|t&t/10
+t*1&t*2|t/10>>2
+
+| = audio mixer
+
+%128 = square wave
+&t/50 = ducking (LFO square)
+&-t/60 = ducking (falling saw |\|\)
+&t/60 = ducking (rising saw /|/|)
+^t*9 = adds weird ringmod like overtones
+
+>>1 = up one octave
