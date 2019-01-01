@@ -30,16 +30,24 @@ def sawwave(t):
 	return (t%(256.0))/(127.0/2.0)-1.0
 
 # yeah, pt = 1.0 to -1.0
-def distort(pt, amp):
+def wavefold(pt, amp):
 	pt = pt * (amp+1.0);
-	if pt > 1.0:
-		pt = pt - ((pt - 1.0) * 2.0)
-	if pt < -1.0:
-		pt = pt - ((pt + 1.0) * 2.0)
+
+	while pt < -1.0 or pt > 1.0:
+		if pt > 1.0:
+			pt = pt - ((pt - 1.0) * 2.0)
+		if pt < -1.0:
+			pt = pt - ((pt + 1.0) * 2.0)
 
 	return pt
 
-def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subSineLvl, distortion):
+def distort(pt, amp):
+	pt = pt * (amp+1.0);
+	return pt
+
+
+
+def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subSineLvl, wavefoldLvl, distortLvl):
 
 	noteOffset = noteOffset - 4.5# pitch fix
 
@@ -79,7 +87,8 @@ def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSqu
 			divisor = (squareLvl + sineLvl + sawLvl + subSineLvl + subSquareLvl)
 
 			prepoint = (  ( (sqr * squareLvl) + (sin * sineLvl) + (saw * sawLvl) + (subsqr * subSquareLvl) + (subsin * subSineLvl) ) / divisor  )
-			prepoint = distort(prepoint, distortion)
+			prepoint = wavefold(prepoint, wavefoldLvl)
+			prepoint = distort(prepoint, distortLvl)
 			prepoint = ((prepoint + 1.0) / 2.0) * 255
 			point = (prepoint * (max_amplitude / 255)) - (max_amplitude / 2)
 			write_word( f, int(point), 2 )
@@ -130,7 +139,7 @@ if not os.path.exists(directory):
 
 sawLvl        = 1.0
 
-sineLvl       = 0.0
+sineLvl       = 1.0
 
 squareLvl     = 1.0
 squareDuty    = 0.25
@@ -140,9 +149,10 @@ subSquareDuty = 0.50
 
 subSineLvl    = 1.0
 
-distortion    = 1.0
+wavefoldLvl      = 0.0
+distortLvl       = 10.0
 
-offset = 0
+offset = -24
 
 makeWav(
 	directory + '/' + str(offset+(48)) + '.wav', 
@@ -154,5 +164,6 @@ makeWav(
 	subSquareLvl, 
 	subSquareDuty, 
 	subSineLvl,
-	distortion
+	wavefoldLvl,
+	distortLvl
 )
