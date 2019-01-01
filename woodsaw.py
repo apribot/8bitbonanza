@@ -29,7 +29,17 @@ def sinewave(t):
 def sawwave(t):
 	return (t%(256.0))/(127.0/2.0)-1.0
 
-def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subSineLvl):
+# yeah, pt = 1.0 to -1.0
+def distort(pt, amp):
+	pt = pt * (amp+1.0);
+	if pt > 1.0:
+		pt = pt - ((pt - 1.0) * 2.0)
+	if pt < -1.0:
+		pt = pt - ((pt + 1.0) * 2.0)
+
+	return pt
+
+def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subSineLvl, distortion):
 
 	noteOffset = noteOffset - 4.5# pitch fix
 
@@ -63,18 +73,18 @@ def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSqu
 			sqr = squarewave(t, squareDuty)
 			sin = sinewave(t)
 			saw = sawwave(t)
-			subsqr = squarewave(t/2, subSquareDuty)
-			subsin = sinewave(t/2)
+			subsqr = squarewave((t+256)/2, subSquareDuty)
+			subsin = sinewave((t+128)/2)
 
 			divisor = (squareLvl + sineLvl + sawLvl + subSineLvl + subSquareLvl)
 
 			prepoint = (  ( (sqr * squareLvl) + (sin * sineLvl) + (saw * sawLvl) + (subsqr * subSquareLvl) + (subsin * subSineLvl) ) / divisor  )
+			prepoint = distort(prepoint, distortion)
 			prepoint = ((prepoint + 1.0) / 2.0) * 255
 			point = (prepoint * (max_amplitude / 255)) - (max_amplitude / 2)
 			write_word( f, int(point), 2 )
 			write_word( f, int(point), 2 )
 
-	
 		f.write(b'smpl')
 
 		sampleperiod = int(1000000000.0 / hz)
@@ -89,6 +99,7 @@ def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSqu
 		write_word( f,            0, 4 )  # smpte offset
 		write_word( f,            1, 4 )  # num sample loops
 		write_word( f,            0, 4 )  # sampler data
+
 		# list of sample loops
 		write_word( f, 0, 4 )  # cutepointid
 		write_word( f, 0, 4 )  # datatype
@@ -97,10 +108,8 @@ def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSqu
 		write_word( f, 0, 4 )  # fraction
 		write_word( f, 0, 4 )  # playcount
 
-		
-
-
 		file_length = f.tell()
+
 		# Fix the data chunk header to contain the data size
 		f.seek( data_chunk_pos + 4 )
 		write_word( f, (N * 4), 4 )
@@ -110,39 +119,31 @@ def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSqu
 		write_word( f, file_length - 8, 4 ) #some how the normal 8 padding isn't enough for SamplerBox, 24 appears to work 
 		f.seek(file_length)
 
-
-# debug just saw
-#settings = {'0 saw':{'a': (lambda t : t*((t>>12|t>>8)&63&t>>4)), 'b': (lambda t: t*((t>>12|t>>8)&63&t>>4) )}}
-#settings = {'57 nova': {'a': (lambda t : t*((t>>7|t>>10)|84&t|t<<26)), 'b': (lambda t: t*((t>>7|t>>10)|84&t|t<<27))}}
-#settings = {'23 GRIT BASS':{'a': (lambda t : (t>>t*t)^t), 'b': (lambda t: t)}}
-#32 GRIT BASS is messed up. re-check wav standard... i thing we're missing
-# padding or something
-
-#patches = settings.keys()
-#bleh = sorted(patches)
-
-#for key in bleh:
 directory = 'TEST'
-#formulaA = settings[key]['a']
-#formulaB = settings[key]['b']
 
 print('generating ' + directory)
 
 if not os.path.exists(directory):
 	os.makedirs(directory)
 
-# this needs to be made less insane, as does the note fix above
-#	for offset in range( -24, 36 ,12 ):
-#		print( str(offset+(48)) + ' ')
+#=============================================================
 
-sawLvl        = 0.5
-sineLvl       = 0.5
-squareLvl     = 0.0
-squareDuty    = 0.125
-subSquareLvl  = 1.0
+sawLvl        = 1.0
+
+sineLvl       = 0.0
+
+squareLvl     = 1.0
+squareDuty    = 0.25
+
+subSquareLvl  = 0.0
 subSquareDuty = 0.50
-subSineLvl    = 0.0
+
+subSineLvl    = 1.0
+
+distortion    = 1.0
+
 offset = 0
+
 makeWav(
 	directory + '/' + str(offset+(48)) + '.wav', 
 	offset, 
@@ -152,5 +153,6 @@ makeWav(
 	squareDuty,
 	subSquareLvl, 
 	subSquareDuty, 
-	subSineLvl
+	subSineLvl,
+	distortion
 )
