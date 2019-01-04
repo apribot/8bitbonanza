@@ -1,3 +1,7 @@
+# distort() is more of a wavewrap, need to add genuine distortion
+# need to add bitcrushing
+# need to re-figure out the math for pitch shifting
+
 import sys
 from settings1 import *
 import os
@@ -18,36 +22,34 @@ def write_word(f, value, size = -1):
 	f.write(bytearray(lst))
 
 def squarewave(t, duty):
-	if t % 256 < 256.0 * duty:
+	if t % 2 < 2 * duty:
 		return -1.0
 	else:
 		return 1.0
 
-def sinewave(t):
-	return math.sin(t / 256.0 * math.pi * 2.0)
+def trianglewave(t):
+	return abs(((t+1.0) % 4.0) - 2.0) - 1.0
 
 def sawwave(t):
-	return (t%(256.0))/(127.0/2.0)-1.0
+	return (t%(2.0)) - 1.0
 
 # yeah, pt = 1.0 to -1.0
+
+
 def wavefold(pt, amp):
 	pt = pt * (amp+1.0);
-
-	while pt < -1.0 or pt > 1.0:
-		if pt > 1.0:
-			pt = pt - ((pt - 1.0) * 2.0)
-		if pt < -1.0:
-			pt = pt - ((pt + 1.0) * 2.0)
-
-	return pt
+	return abs(((pt+1.0) % 4.0) - 2.0) - 1.0
 
 def distort(pt, amp):
 	pt = pt * (amp+1.0);
-	return pt
+	return ((pt+1) % 2.0) - 1.0
 
+themax = -99999999
+themin = 99999999
 
+def makeWav(fileName, noteOffset, sawLvl, triangleLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subtriangleLvl, wavefoldLvl, distortLvl):
 
-def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subSineLvl, wavefoldLvl, distortLvl):
+	global themax, themin
 
 	noteOffset = noteOffset - 4.5# pitch fix
 
@@ -76,21 +78,41 @@ def makeWav(fileName, noteOffset, sawLvl, sineLvl, squareLvl, squareDuty, subSqu
 		f.write(b'data----')	   # (chunk size to be filled in later)
 
 		for i in range(0,N):
-			t = int(i * factor)
+			i = i * 0.01
+			t = i * factor
 
 			sqr = squarewave(t, squareDuty)
-			sin = sinewave(t)
+			tri = trianglewave(t)
 			saw = sawwave(t)
-			subsqr = squarewave((t+256)/2, subSquareDuty)
-			subsin = sinewave((t+128)/2)
+			subsqr = squarewave(t/2.0, subSquareDuty)
+			subtri = trianglewave(t/2.0)
 
-			divisor = (squareLvl + sineLvl + sawLvl + subSineLvl + subSquareLvl)
+			divisor = (squareLvl + triangleLvl + sawLvl + subtriangleLvl + subSquareLvl)
 
-			prepoint = (  ( (sqr * squareLvl) + (sin * sineLvl) + (saw * sawLvl) + (subsqr * subSquareLvl) + (subsin * subSineLvl) ) / divisor  )
+			prepoint = (  
+				( 
+					(sqr * squareLvl) 
+					+ (tri * triangleLvl) 
+					+ (saw * sawLvl) 
+					+ (subsqr * subSquareLvl) 
+					+ (subtri * subtriangleLvl) 
+				) 
+				/ divisor  
+			)
+
 			prepoint = wavefold(prepoint, wavefoldLvl)
 			prepoint = distort(prepoint, distortLvl)
-			prepoint = ((prepoint + 1.0) / 2.0) * 255
-			point = (prepoint * (max_amplitude / 255)) - (max_amplitude / 2)
+
+			point = int((prepoint) * (max_amplitude / 2.0))
+
+			point = point * 0.99
+
+			if point > themax:
+				themax = point
+
+			if point < themin:
+				themin = point
+
 			write_word( f, int(point), 2 )
 			write_word( f, int(point), 2 )
 
@@ -137,20 +159,20 @@ if not os.path.exists(directory):
 
 #=============================================================
 
-sawLvl        = 1.0
+sawLvl           = 0.0
 
-sineLvl       = 1.0
+triangleLvl      = 1.0
 
-squareLvl     = 1.0
-squareDuty    = 0.25
+squareLvl        = 0.0
+squareDuty       = 0.25
 
-subSquareLvl  = 0.0
-subSquareDuty = 0.50
+subSquareLvl     = 0.0
+subSquareDuty    = 0.50
 
-subSineLvl    = 1.0
+subtriangleLvl   = 0.0
 
 wavefoldLvl      = 0.0
-distortLvl       = 10.0
+distortLvl       = 0.5
 
 offset = -24
 
@@ -158,12 +180,14 @@ makeWav(
 	directory + '/' + str(offset+(48)) + '.wav', 
 	offset, 
 	sawLvl, 
-	sineLvl, 
+	triangleLvl, 
 	squareLvl, 
 	squareDuty,
 	subSquareLvl, 
 	subSquareDuty, 
-	subSineLvl,
+	subtriangleLvl,
 	wavefoldLvl,
 	distortLvl
 )
+
+print('min', themin, 'max', themax)
