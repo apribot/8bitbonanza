@@ -48,6 +48,27 @@ def distort(pt, amp):
 	else:
 		return pt
 
+attack = 20.0
+decay  = 150.0
+sustain = 0.3
+
+#big, sustain, 1
+
+def envelope(t):
+	global attack,decay,sustain
+
+	response = 0
+	if t <= attack:
+		response = ((1.0/attack) * t ) ** (1.0/3.0)
+		#response = t / attack
+	elif t > attack:
+		#response = (((((sustain - 1.0) / decay) * (t - attack) + 1.0) - sustain) / (1.0 - sustain)) * (1 - sustain) + 1 
+		response =  1.0 - ((t-attack) / (attack+decay))
+		if response < sustain:
+			response = sustain
+
+	return response
+
 
 
 def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResolution):
@@ -89,6 +110,7 @@ def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResol
 
 			prepoint = (sinewave(t + mod1 + mod2) + sinewave(t + mod3 + mod4)) / 2.0
 
+			prepoint = prepoint * envelope(t)
 
 			if bitResolution < 16:
 				prepoint = float(int(prepoint * ((2 ** bitResolution)/2))) / ((2 ** bitResolution)/2)

@@ -1,18 +1,23 @@
-sawLvl           = 0.0
+sawLvl           = 1.0
 
-triangleLvl      = 1.0
+triangleLvl      = 0.0
 
 squareLvl        = 0.0
 squareDuty       = 0.125
 
-subSquareLvl     = 0.0
-subSquareDuty    = 0.25
+subSquareLvl     = 0.5
+subSquareDuty    = 0.125
 
 subtriangleLvl   = 0.0
 
-wavefoldLvl      = 2.0
-wavewrapLvl      = 0.0
-distortLvl		 = 0.0
+wavefoldLvl      = 1.0
+wavewrapLvl      = 1.0
+distortLvl		 = 1.0
+
+attack           = 20.0
+decay            = 150.0
+sustain          = 0.3
+
 
 bitResolution    = 16
 
@@ -73,6 +78,23 @@ def distort(pt, amp):
 	else:
 		return pt
 
+
+#big, sustain, 1
+
+def envelope(t):
+	global attack,decay,sustain
+
+	response = 0
+	if t <= attack:
+		response = ((1.0/attack) * t ) ** (1.0/3.0)
+		#response = t / attack
+	elif t > attack:
+		#response = (((((sustain - 1.0) / decay) * (t - attack) + 1.0) - sustain) / (1.0 - sustain)) * (1 - sustain) + 1 
+		response =  1.0 - ((t-attack) / (attack+decay))
+		if response < sustain:
+			response = sustain
+
+	return response
 
 
 def makeWav(fileName, noteOffset, sawLvl, triangleLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subtriangleLvl, wavefoldLvl, wavewrapLvl, distortLvl, bitResolution):
@@ -135,6 +157,8 @@ def makeWav(fileName, noteOffset, sawLvl, triangleLvl, squareLvl, squareDuty, su
 	
 			if distortLvl > 0:
 				prepoint = distort(prepoint, distortLvl)
+
+			prepoint = prepoint * envelope(t)
 
 
 			point = int((prepoint) * (max_amplitude / 2.0))
