@@ -1,22 +1,10 @@
-sawLvl           = 0.0
-
-triangleLvl      = 1.0
-
-squareLvl        = 0.0
-squareDuty       = 0.125
-
-subSquareLvl     = 0.0
-subSquareDuty    = 0.25
-
-subtriangleLvl   = 0.0
-
-wavefoldLvl      = 2.0
+wavefoldLvl      = 0.0
 wavewrapLvl      = 0.0
 distortLvl		 = 0.0
 
 bitResolution    = 16
 
-offset = -12
+offset = 0
 
 # need to re-figure out the math for pitch shifting
 
@@ -41,20 +29,7 @@ def write_word(f, value, size = -1):
 
 
 def sinewave(pt):
-	return(2.0 * pi() * pt);
-
-
-def squarewave(pt, duty):
-	if pt % 2 < (2 * duty):
-		return -0.999
-	else:
-		return 0.999
-
-def trianglewave(pt):
-	return abs(((((pt+0.25)*2)+0.5) % 4.0) - 2.0) - 1.0
-
-def sawwave(pt):
-	return (2.0-((pt+1)%(2.0))) - 1.0
+	return(math.sin(2.0 * math.pi * pt));
 
 def wavefold(pt, amp):
 	pt = pt * (amp+1.0);
@@ -75,7 +50,7 @@ def distort(pt, amp):
 
 
 
-def makeWav(fileName, noteOffset, sawLvl, triangleLvl, squareLvl, squareDuty, subSquareLvl, subSquareDuty, subtriangleLvl, wavefoldLvl, wavewrapLvl, distortLvl, bitResolution):
+def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResolution):
 
 	noteOffset = noteOffset - 4.5# pitch fix
 
@@ -105,24 +80,15 @@ def makeWav(fileName, noteOffset, sawLvl, triangleLvl, squareLvl, squareDuty, su
 
 		for i in range(0,N):
 			t = (i * 0.01) * factor
-			sqr = squarewave(t, squareDuty)
-			tri = trianglewave(t)
-			saw = sawwave(t)
-			subsqr = squarewave(t/2.0, subSquareDuty)
-			subtri = trianglewave(t/2.0)
 
-			divisor = (squareLvl + triangleLvl + sawLvl + subtriangleLvl + subSquareLvl)
+			mod1 = sinewave(t*0.01) * 0.2
+			mod2 = sinewave(t*(1.0 + (4.0/12.0))) * 0.3 
 
-			prepoint = (  
-				( 
-					(sqr * squareLvl) 
-					+ (tri * triangleLvl) 
-					+ (saw * sawLvl) 
-					+ (subsqr * subSquareLvl) 
-					+ (subtri * subtriangleLvl) 
-				) 
-				/ divisor  
-			)
+			mod3 = sinewave(t + 0.03) * 0.2
+			mod4 = sinewave(t + (2.0 + (7.0/12.0))) * 0.2
+
+			prepoint = (sinewave(t + mod1 + mod2) + sinewave(t + mod3 + mod4)) / 2.0
+
 
 			if bitResolution < 16:
 				prepoint = float(int(prepoint * ((2 ** bitResolution)/2))) / ((2 ** bitResolution)/2)
@@ -191,13 +157,6 @@ if not os.path.exists(directory):
 makeWav(
 	directory + '/' + str(offset+(48)) + '.wav', 
 	offset, 
-	sawLvl, 
-	triangleLvl, 
-	squareLvl, 
-	squareDuty,
-	subSquareLvl, 
-	subSquareDuty, 
-	subtriangleLvl,
 	wavefoldLvl,
 	wavewrapLvl,
 	distortLvl,
