@@ -1,12 +1,16 @@
+offset           = 0
+
+attack           = 100.0   # attack in... time(?)
+decay            = 500.0   # decay in... time?
+sustain          = 0.0     # sustain volume (0.0 - 1.0)
+
+
 wavefoldLvl      = 0.0
 wavewrapLvl      = 0.0
-distortLvl		 = 0.0
+distortLvl		 = 0.0   
+bitResolution    = 16      # 1 - 16
 
-bitResolution    = 16
-
-offset = 0
-
-# need to re-figure out the math for pitch shifting
+#=============================================================
 
 import sys
 from settings1 import *
@@ -48,33 +52,22 @@ def distort(pt, amp):
 	else:
 		return pt
 
-attack = 20.0
-decay  = 150.0
-sustain = 0.3
-
-#big, sustain, 1
-
 def envelope(t):
 	global attack,decay,sustain
 
 	response = 0
-	if t <= attack:
-		response = ((1.0/attack) * t ) ** (1.0/3.0)
-		#response = t / attack
-	elif t > attack:
-		#response = (((((sustain - 1.0) / decay) * (t - attack) + 1.0) - sustain) / (1.0 - sustain)) * (1 - sustain) + 1 
-		response =  1.0 - ((t-attack) / (attack+decay))
+	if t <= (attack+0.1):
+		response = ((1.0/(attack+0.1)) * t ) ** (1.0/3.0)
+	elif t > (attack+0.1) and t <= (attack+0.1) + decay:
+		response = ( 1.0 - math.sin(((t-(attack+0.1)) * (1/decay) )/2.0 * math.pi))
 		if response < sustain:
 			response = sustain
-
+	else:
+		response = sustain
 	return response
 
-
-
 def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResolution):
-
 	noteOffset = noteOffset - 4.5# pitch fix
-
 	max_amplitude = 65536
 	hz		      = 44100	 # samples per second
 
@@ -110,8 +103,6 @@ def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResol
 
 			prepoint = (sinewave(t + mod1 + mod2) + sinewave(t + mod3 + mod4)) / 2.0
 
-			prepoint = prepoint * envelope(t)
-
 			if bitResolution < 16:
 				prepoint = float(int(prepoint * ((2 ** bitResolution)/2))) / ((2 ** bitResolution)/2)
 
@@ -124,6 +115,7 @@ def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResol
 			if distortLvl > 0:
 				prepoint = distort(prepoint, distortLvl)
 
+			prepoint = prepoint * envelope(t)
 
 			point = int((prepoint) * (max_amplitude / 2.0))
 
@@ -172,9 +164,6 @@ print('generating ' + directory)
 
 if not os.path.exists(directory):
 	os.makedirs(directory)
-
-#=============================================================
-
 
 makeWav(
 	directory + '/' + str(offset+(48)) + '.wav', 
