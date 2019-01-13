@@ -1,6 +1,6 @@
 offset           = 0
 
-attack           = 100.0   # attack in... time(?)
+attack           = 500.0   # attack in... time(?)
 decay            = 500.0   # decay in... time?
 sustain          = 0.0     # sustain volume (0.0 - 1.0)
 
@@ -10,6 +10,9 @@ wavewrapLvl      = 0.0
 distortLvl		 = 0.0   
 bitResolution    = 16      # 1 - 16
 
+lowpassLvl       = 1
+
+volumeLvl        = 0.95
 #=============================================================
 
 import sys
@@ -66,7 +69,21 @@ def envelope(t):
 		response = sustain
 	return response
 
-def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResolution):
+
+snip = []
+
+def lowpass(pt, windowSize):
+	global snip
+
+	snip.append(pt)
+
+	if len(snip) > windowSize:
+		snip.pop(0)
+
+	return sum(snip) / windowSize
+
+
+def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResolution, lowpassLvl, volumeLvl):
 	noteOffset = noteOffset - 4.5# pitch fix
 	max_amplitude = 65536
 	hz		      = 44100	 # samples per second
@@ -117,9 +134,12 @@ def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResol
 
 			prepoint = prepoint * envelope(t)
 
+			if lowpassLvl > 1:
+				prepoint = lowpass(prepoint, lowpassLvl)
+
 			point = int((prepoint) * (max_amplitude / 2.0))
 
-			point = point * 0.95
+			point = point * volumeLvl
 
 			write_word( f, int(point), 2 )
 			write_word( f, int(point), 2 )
@@ -171,5 +191,7 @@ makeWav(
 	wavefoldLvl,
 	wavewrapLvl,
 	distortLvl,
-	bitResolution
+	bitResolution,
+	lowpassLvl,
+	volumeLvl
 )
