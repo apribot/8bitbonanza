@@ -1,3 +1,6 @@
+lowpassLvl = 0
+gainLvl    = 1.0
+
 import sys
 from settings1 import *
 import os
@@ -20,7 +23,7 @@ def write_word(f, value, size = -1):
 def squarewave(t, duty = 0.5):
 	if t % 256 < 256 * duty:
 		return 255
-	else
+	else:
 		return 0 
 
 def sinewave(t):
@@ -29,7 +32,22 @@ def sinewave(t):
 def sawwave(t):
 	return (t % (256/2)) * 2
 
-def makeWav(fileName, noteOffset, formulaA, formulaB):
+
+
+snip = [0] * lowpassLvl
+i = 0
+
+def lowpass(pt, windowSize):
+	global snip, i
+
+	snip[i] = pt
+	i = (i+1) % windowSize
+
+	return int(sum(snip) / windowSize)
+
+
+
+def makeWav(fileName, noteOffset, formulaA, formulaB, lowpassLvl, gainLvl):
 
 	noteOffset = noteOffset - 4.5# pitch fix
 
@@ -67,6 +85,11 @@ def makeWav(fileName, noteOffset, formulaA, formulaB):
 			b = b % 255
 
 			point = (((a + b) / 2) * (max_amplitude / 255)) - (max_amplitude / 2)
+
+			if lowpassLvl > 1:
+				point = lowpass(point, lowpassLvl)
+
+			point = int(point * gainLvl)
 
 			write_word( f, int(point), 2 )
 			write_word( f, int(point), 2 )
@@ -131,5 +154,5 @@ for key in bleh:
 	# this needs to be made less insane, as does the note fix above
 	for offset in range( -24, 36 ,12 ):
 		print( str(offset+(48)) + ' ')
-		makeWav(directory + '/' + str(offset+(48)) + '.wav', offset, formulaA, formulaB)
+		makeWav(directory + '/' + str(offset+(48)) + '.wav', offset, formulaA, formulaB, lowpassLvl, gainLvl)
 

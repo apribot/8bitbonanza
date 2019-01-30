@@ -1,7 +1,7 @@
 offset           = 0
 
-attack           = 500.0   # attack in... time(?)
-decay            = 500.0   # decay in... time?
+attack           = 100.0   # attack in... time(?)
+decay            = 300.0   # decay in... time?
 sustain          = 0.0     # sustain volume (0.0 - 1.0)
 
 
@@ -10,7 +10,7 @@ wavewrapLvl      = 0.0
 distortLvl		 = 0.0   
 bitResolution    = 16      # 1 - 16
 
-lowpassLvl       = 1
+lowpassLvl       = 50
 
 volumeLvl        = 0.95
 #=============================================================
@@ -70,15 +70,14 @@ def envelope(t):
 	return response
 
 
-snip = []
+snip = [0] * lowpassLvl
+i = 0
 
 def lowpass(pt, windowSize):
-	global snip
+	global snip, i
 
-	snip.append(pt)
-
-	if len(snip) > windowSize:
-		snip.pop(0)
+	snip[i] = pt
+	i = (i+1) % windowSize
 
 	return sum(snip) / windowSize
 
@@ -112,11 +111,11 @@ def makeWav(fileName, noteOffset, wavefoldLvl, wavewrapLvl, distortLvl, bitResol
 		for i in range(0,N):
 			t = (i * 0.01) * factor
 
-			mod1 = sinewave(t*0.01) * 0.2
-			mod2 = sinewave(t*(1.0 + (4.0/12.0))) * 0.3 
+			mod1 = sinewave(t * 0.5) * 0.2
+			mod2 = sinewave(t * 1.3) * 0.3 
 
-			mod3 = sinewave(t + 0.03) * 0.2
-			mod4 = sinewave(t + (2.0 + (7.0/12.0))) * 0.2
+			mod3 = sinewave(t * 1.0) * 0.2
+			mod4 = sinewave(t * 2.6) * 0.2
 
 			prepoint = (sinewave(t + mod1 + mod2) + sinewave(t + mod3 + mod4)) / 2.0
 
