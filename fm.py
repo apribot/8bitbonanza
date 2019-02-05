@@ -3,13 +3,9 @@ import os
 import math
 
 class Butterworth:
-	# <summary>
-	# rez amount, from sqrt(2) to ~ 0.1
-	# </summary>
 	def __init__(self):
 		self.outputHistory = [0] * 3
 		self.inputHistory = [0] * 2
-
 
 	def filter(self, frequency, sampleRate, passType, resonance):
 		self.resonance = resonance
@@ -46,7 +42,7 @@ class Butterworth:
 		return newOutput
 
 
-class engine:
+class Engine:
 	def __init__(self):
 		self.passType = 'none'
 
@@ -107,21 +103,15 @@ class engine:
 
 
 	def makeWav(self, fileName, noteOffset):
-
-
 		actualResonance = ((math.sqrt(2)) * (1.0 - self.resonance))
-
-
 		noteOffset = noteOffset - 4.5# pitch fix
 		max_amplitude = 65536
 		hz			  = 44100	 # samples per second
-
 
 		flt = Butterworth()
 		
 		if self.passType != 'none':
 			flt.filter(self.frequency, 44100, self.passType, actualResonance)
-
 
 		factor = 2 ** (1.0 * noteOffset / 12.0)
 		N = int((256 * 500) * (1.0 / factor))  # total number of samples
@@ -132,13 +122,13 @@ class engine:
 
 		with open(fileName, 'wb+') as f:
 			f.write(b'RIFF----WAVEfmt ')
-			self.write_word( f,	   16, 4 )  # no extension data
-			self.write_word( f,		1, 2 )  # PCM - integer samples
-			self.write_word( f,		2, 2 )  # two channels (stereo file)
-			self.write_word( f,	 hz, 4 )  # samples per second (Hz)
+			self.write_word( f,	    16, 4 )  # no extension data
+			self.write_word( f, 	 1, 2 )  # PCM - integer samples
+			self.write_word( f,	  	 2, 2 )  # two channels (stereo file)
+			self.write_word( f,	    hz, 4 )  # samples per second (Hz)
 			self.write_word( f, 176400, 4 )  # (Sample hz * BitsPerSample * Channels) / 8
-			self.write_word( f,		4, 2 )  # data block size (size of two integer samples, one for each channel, in bytes)
-			self.write_word( f,	   16, 2 )  # number of bits per sample (use a multiple of 8)
+			self.write_word( f,		 4, 2 )  # data block size (size of two integer samples, one for each channel, in bytes)
+			self.write_word( f,	    16, 2 )  # number of bits per sample (use a multiple of 8)
 
 			data_chunk_pos = f.tell()
 
@@ -177,13 +167,9 @@ class engine:
 
 				prepoint = prepoint * self.envelope(t)
 
-
-
-
 				point = int((prepoint) * (max_amplitude / 2.0))
 
 				point = point * self.volumeLvl
-
 
 				self.write_word( f, int(point), 2 )
 				self.write_word( f, int(point), 2 )
@@ -192,16 +178,16 @@ class engine:
 
 			sampleperiod = int(1000000000.0 / hz)
 			
-			self.write_word( f,		   60, 4 )  # size, baby. hard 60 because the number of fields isn't changing
-			self.write_word( f,			0, 4 )  # manufacturer
-			self.write_word( f,			0, 4 )  # product
+			self.write_word( f,		      60, 4 )  # size, baby. hard 60 because the number of fields isn't changing
+			self.write_word( f,			   0, 4 )  # manufacturer
+			self.write_word( f,			   0, 4 )  # product
 			self.write_word( f, sampleperiod, 4 )  # sample period
-			self.write_word( f,			0, 4 )  # midi unity note
-			self.write_word( f,			0, 4 )  # midi pitch fraction
-			self.write_word( f,			0, 4 )  # smpte format
-			self.write_word( f,			0, 4 )  # smpte offset
-			self.write_word( f,			1, 4 )  # num sample loops
-			self.write_word( f,			0, 4 )  # sampler data
+			self.write_word( f,			   0, 4 )  # midi unity note
+			self.write_word( f,			   0, 4 )  # midi pitch fraction
+			self.write_word( f,			   0, 4 )  # smpte format
+			self.write_word( f,			   0, 4 )  # smpte offset
+			self.write_word( f,			   1, 4 )  # num sample loops
+			self.write_word( f,			   0, 4 )  # sampler data
 
 			# list of sample loops
 			self.write_word( f, 0, 4 )  # cutepointid
@@ -219,35 +205,38 @@ class engine:
 
 			# Fix the file header to contain the proper RIFF chunk size, which is (file size - 8, minus the damn sample block i guess?) bytes
 			f.seek( 0 + 4 );
-			self.write_word( f, file_length - 8, 4 ) #some how the normal 8 padding isn't enough for SamplerBox, 24 appears to work 
+			self.write_word( f, file_length - 8, 4 )
 			f.seek(file_length)
 
 
+e = Engine()
 
-e = engine()
-e.attack = 0.0
-e.decay = 1300.0
-e.sustain = 0.0
-e.wavefoldLvl = 0.0
-e.wavewrapLvl = 0.0
-e.distortLvl = 0.0
+#=====================================================
+
+e.attack        = 0.0
+e.decay         = 1300.0
+e.sustain       = 0.0
+
+e.wavefoldLvl   = 0.0
+e.wavewrapLvl   = 0.0
+e.distortLvl    = 0.0
 e.bitResolution = 16
-e.lowpassLvl = 0.0
-e.volumeLvl = 1.0
 
-e.passType = 'lp'
-e.frequency = 500
-e.resonance = .99 #0.0 #0.99#0.0 to 1.0
+e.passType      = 'lp'
+e.frequency     = 500
+e.resonance     = .99 #0.0 to 1.0
 
+e.volumeLvl     = 1.0
 
-offset = 0
-directory = 'TEST'
+offset          = 0
+directory       = 'TEST'
+
+#=====================================================
 
 print('generating ' + directory)
 
 if not os.path.exists(directory):
 	os.makedirs(directory)
-
 
 fname = directory + '/' + str(offset+(48)) + '.wav'
 
